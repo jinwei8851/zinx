@@ -2,6 +2,7 @@ package znet
 
 import (
 	"fmt"
+	"gocode/zinx/utils"
 	"gocode/zinx/ziface"
 	"net"
 )
@@ -20,19 +21,13 @@ type Server struct {
 	Router ziface.IRouter
 }
 
-//定义当前客户端链接的绑定的handle api，以后优化由用户自定义handle方法
-//func CallBackClient(conn *net.TCPConn, data []byte, cnt int) error {
-//	// 回显业务
-//	fmt.Println("[Conn Handle] callbackToclient...")
-//	if _, err := conn.Write(data[:cnt]); err != nil {
-//		fmt.Println("write back buf err", err)
-//		return errors.New("CallBackToclient error")
-//	}
-//	return nil
-//}
-
 func (s *Server) Start() {
-	fmt.Printf("[START] Server listenner at IP: %s, Port %d, is starting\n", s.IP, s.Port)
+	fmt.Printf("[START] Server Name : %s, Server listenner at IP: %s, Port %d, is starting\n",
+		utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TcpPort)
+	fmt.Printf("[Zinx] Version: %s, MaxConn: %d,  MaxPacketSize: %d\n",
+		utils.GlobalObject.Version,
+		utils.GlobalObject.MaxConn,
+		utils.GlobalObject.MaxPacketSize)
 	go func() {
 		//1 获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
@@ -83,12 +78,14 @@ func (s *Server) Server() {
 /*
  初始化Server模块
 */
-func NewServer(name string) ziface.IServer {
+func NewServer() ziface.IServer {
+	//先初始化全局配置文件
+	utils.GlobalObject.Reload()
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name, //从全局参数获取
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalObject.Host,    //从全局参数获取
+		Port:      utils.GlobalObject.TcpPort, //从全局参数获取
 		Router:    nil,
 	}
 	return s
